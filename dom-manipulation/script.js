@@ -53,3 +53,57 @@ let quotes = [
       alert("Please enter both quote text and category.");
     }
   }
+
+  // Implementing Web Storage and JSON Handling
+  let quote = JSON.parse(localStorage.getItem("quotes")) || [
+    { text: "The only limit to our realization of tomorrow is our doubts of today.", category: "Inspiration" },
+    { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", category: "Motivation" },
+  ];
+  
+  function saveQuotes() {
+    localStorage.setItem("quotes", JSON.stringify(quotes));
+  }
+  
+  function addQuote() {
+    const newQuoteText = document.getElementById("newQuoteText").value;
+    const newQuoteCategory = document.getElementById("newQuoteCategory").value;
+  
+    if (newQuoteText && newQuoteCategory) {
+      quotes.push({ text: newQuoteText, category: newQuoteCategory });
+      saveQuotes();
+      document.getElementById("newQuoteText").value = "";
+      document.getElementById("newQuoteCategory").value = "";
+      alert("Quote added successfully!");
+    } else {
+      alert("Please enter both quote text and category.");
+    }
+  }
+  
+  window.onload = function() {
+    showRandomQuote(); 
+  };
+
+  function exportToJsonFile() {
+    const dataStr = JSON.stringify(quotes);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+  
+    const downloadLink = document.createElement("a");
+    downloadLink.href = url;
+    downloadLink.download = "quotes.json";
+    downloadLink.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importFromJsonFile(event) {
+    const fileReader = new FileReader();
+    fileReader.onload = function(event) {
+      const importedQuotes = JSON.parse(event.target.result);
+      quotes.push(...importedQuotes);
+      saveQuotes();
+      alert("Quotes imported successfully!");
+      showRandomQuote(); 
+    };
+    fileReader.readAsText(event.target.files[0]);
+  }
+
