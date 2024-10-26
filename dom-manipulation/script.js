@@ -3,8 +3,6 @@ let quotes = [
     { text: "Do not wait to strike till the iron is hot; but make it hot by striking.", category: "Motivation" },
   ];
 
-
-
   function showRandomQuote() {
     const randomIndex = Math.floor(Math.random() * quotes.length);
     const quote = quotes[randomIndex];
@@ -13,18 +11,32 @@ let quotes = [
   
   document.getElementById("newQuote").addEventListener("click", showRandomQuote);
 
-
-
-  function addQuote() {
-    const newQuoteText = document.getElementById("newQuoteText").value;
-    const newQuoteCategory = document.getElementById("newQuoteCategory").value;
+  function createAddQuoteForm() {
+    const formDiv = document.createElement("div");
   
-    if (newQuoteText && newQuoteCategory) {
-      quotes.push({ text: newQuoteText, category: newQuoteCategory });
-      document.getElementById("newQuoteText").value = "";
-      document.getElementById("newQuoteCategory").value = "";
-      alert("Quote added successfully!");
-    } else {
-      alert("Please enter both quote text and category.");
-    }
+    const quoteInput = document.createElement("input");
+    quoteInput.id = "newQuoteText";
+    quoteInput.type = "text";
+    quoteInput.placeholder = "Enter a new quote";
+    
+    const categoryInput = document.createElement("input");
+    categoryInput.id = "newQuoteCategory";
+    categoryInput.type = "text";
+    categoryInput.placeholder = "Enter quote category";
+  
+    const addButton = document.createElement("button");
+    addButton.innerText = "Add Quote";
+    addButton.onclick = addQuote; 
+  
+    formDiv.appendChild(quoteInput);
+    formDiv.appendChild(categoryInput);
+    formDiv.appendChild(addButton);
+  
+    document.body.appendChild(formDiv);
   }
+
+  window.onload = function() {
+    createAddQuoteForm();
+  };
+
+  
