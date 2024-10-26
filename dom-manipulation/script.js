@@ -107,3 +107,121 @@ let quotes = [
     fileReader.readAsText(event.target.files[0]);
   }
 
+//Creating a Dynamic Content Filtering System Using Web Storage and JSON
+function populateCategories() {
+    const categoryFilter = document.getElementById("categoryFilter");
+    categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+  
+    const categories = [...new Set(quotes.map(quote => quote.category))];
+    categories.forEach(category => {
+      const option = document.createElement("option");
+      option.value = category;
+      option.innerText = category;
+      categoryFilter.appendChild(option);
+    });
+  
+    const lastSelectedCategory = localStorage.getItem("selectedCategory");
+    if (lastSelectedCategory) {
+      categoryFilter.value = lastSelectedCategory;
+      filterQuotes(); 
+    }
+  }
+
+  function filterQuotes() {
+    const selectedCategory = document.getElementById("categoryFilter").value;
+    localStorage.setItem("selectedCategory", selectedCategory);
+  
+    const filteredQuotes = selectedCategory === "all"
+      ? quotes
+      : quotes.filter(quote => quote.category === selectedCategory);
+  
+    
+    if (filteredQuotes.length > 0) {
+      const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+      const quote = filteredQuotes[randomIndex];
+      document.getElementById("quoteDisplay").innerText = `"${quote.text}" - ${quote.category}`;
+    } else {
+      document.getElementById("quoteDisplay").innerText = "No quotes available for this category.";
+    }
+  }
+
+  function addQuote() {
+    const newQuoteText = document.getElementById("newQuoteText").value;
+    const newQuoteCategory = document.getElementById("newQuoteCategory").value;
+  
+    if (newQuoteText && newQuoteCategory) {
+      quotes.push({ text: newQuoteText, category: newQuoteCategory });
+      saveQuotes();
+  
+      if (![...new Set(quotes.map(quote => quote.category))].includes(newQuoteCategory)) {
+        populateCategories(); // Refresh category dropdown
+      }
+  
+      document.getElementById("newQuoteText").value = "";
+      document.getElementById("newQuoteCategory").value = "";
+      alert("Quote added successfully!");
+    } else {
+      alert("Please enter both quote text and category.");
+    }
+  }
+
+function saveQuotes() {
+  localStorage.setItem("quotes", JSON.stringify(quotes));
+}
+
+function populateCategories() {
+  const categoryFilter = document.getElementById("categoryFilter");
+  categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+
+  const categories = [...new Set(quotes.map(quote => quote.category))];
+  categories.forEach(category => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.innerText = category;
+    categoryFilter.appendChild(option);
+  });
+
+  const lastSelectedCategory = localStorage.getItem("selectedCategory");
+  if (lastSelectedCategory) {
+    categoryFilter.value = lastSelectedCategory;
+    filterQuotes();
+  }
+}
+
+function filterQuotes() {
+  const selectedCategory = document.getElementById("categoryFilter").value;
+  localStorage.setItem("selectedCategory", selectedCategory);
+
+  const filteredQuotes = selectedCategory === "all"
+    ? quotes
+    : quotes.filter(quote => quote.category === selectedCategory);
+
+  if (filteredQuotes.length > 0) {
+    const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
+    const quote = filteredQuotes[randomIndex];
+    document.getElementById("quoteDisplay").innerText = `"${quote.text}" - ${quote.category}`;
+  } else {
+    document.getElementById("quoteDisplay").innerText = "No quotes available for this category.";
+  }
+}
+
+function addQuote() {
+  const newQuoteText = document.getElementById("newQuoteText").value;
+  const newQuoteCategory = document.getElementById("newQuoteCategory").value;
+
+  if (newQuoteText && newQuoteCategory) {
+    quotes.push({ text: newQuoteText, category: newQuoteCategory });
+    saveQuotes();
+    populateCategories();
+    document.getElementById("newQuoteText").value = "";
+    document.getElementById("newQuoteCategory").value = "";
+    alert("Quote added successfully!");
+  } else {
+    alert("Please enter both quote text and category.");
+  }
+}
+
+window.onload = function() {
+  populateCategories();
+  filterQuotes();
+};
