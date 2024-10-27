@@ -167,6 +167,7 @@ function addQuote(text, category) {
 }
 
 // Syncing Data with Server and Implementing Conflict Resolution
+
 const serverUrl = "https://jsonplaceholder.typicode.com/posts";
 let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
 
@@ -174,16 +175,15 @@ function fetchQuotesFromServer() {
     fetch(serverUrl)
         .then(response => response.json())
         .then(serverQuotes => {
-    
             const formattedServerQuotes = serverQuotes.map(post => ({
                 text: post.body,
-                category: "General",
+                category: "General", 
                 id: post.id
             }));
 
             syncQuotes(formattedServerQuotes);
         })
-        .catch(error => console.error("Error fetching from server:", error));
+        .catch(error => console.error("Error fetching data from server:", error));
 }
 
 setInterval(fetchQuotesFromServer, 60000);
@@ -215,23 +215,15 @@ function notifyUserOfUpdate(updatedQuote) {
     setTimeout(() => notification.remove(), 3000); 
 }
 
-function resolveConflict(manualResolutionCallback) {
-    const conflictModal = document.createElement("div");
-    conflictModal.className = "conflict-modal";
-    conflictModal.innerHTML = `
-        <p>Conflict detected! Choose which version to keep:</p>
-        <button id="keepLocal">Keep Local Version</button>
-        <button id="keepServer">Keep Server Version</button>
-    `;
-    document.body.appendChild(conflictModal);
+function filterQuotes() {
+    const quoteContainer = document.getElementById("quoteContainer");
+    quoteContainer.innerHTML = "";
 
-    document.getElementById("keepLocal").onclick = () => {
-        manualResolutionCallback("local");
-        document.body.removeChild(conflictModal);
-    };
-
-    document.getElementById("keepServer").onclick = () => {
-        manualResolutionCallback("server");
-        document.body.removeChild(conflictModal);
-    };
+    localQuotes.forEach(quote => {
+        const quoteElement = document.createElement("p");
+        quoteElement.textContent = quote.text;
+        quoteContainer.appendChild(quoteElement);
+    });
 }
+
+fetchQuotesFromServer();
