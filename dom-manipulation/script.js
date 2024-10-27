@@ -236,27 +236,71 @@ function resolveConflict(manualResolutionCallback) {
     };
 }
 
-setInterval(fetchData, 15000); 
-function fetchData() {
-    fetch('https://jsonplaceholder.typicode.com/posts')
-        .then(response => response.json())
-        .then(data => updateLocalData(data))
-        .catch(error => console.log('Fetch error:', error));
-}
+const API_URL = 'https://jsonplaceholder.typicode.com/posts';
 
-function updateLocalData(serverData) {
-    const localData = JSON.parse(localStorage.getItem('quotes')) || [];
-    if (JSON.stringify(localData) !== JSON.stringify(serverData)) {
-        localStorage.setItem('quotes', JSON.stringify(serverData));
-        notifyUser("New data from server loaded.");
+async function fetchServerData() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const serverData = await response.json();
+        return serverData;
+    } catch (error) {
+        console.error('Error fetching data from server:', error);
     }
 }
 
-function notifyUser(message) {
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000);
+async function postDataToServer(quote) {
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quote)
+        });
+        const newQuote = await response.json();
+        console.log('Quote successfully posted:', newQuote);
+    } catch (error) {
+        console.error('Error posting data to server:', error);
+    }
 }
 
+async function syncQuotes() {
+    const serverData = await fetchServerData();
+    if (!serverData) return; 
+
+    const localData = JSON.parse(localStorage.getItem('quotes')) || [];
+    const updatedLocalData = [...localData];
+
+    serverData.forEach(serverQuote => {
+        const localQuoteIndex = updatedLocalData.findIndex(localQuote => localQuote.id === serverQuote.id);
+
+        if (localQuoteIndex !== -1) {
+            if (updatedLocalData[localQuoteIndex].text !== serverQuote.text) {
+                updatedLocalData[localQuoteIndex] = serverQuote;
+                notifyUser(`Quote with ID ${serverQuote.id} has been updated from the server.`);
+            }
+        } else {
+            updatedLocalData.push(serverQuote);
+            notifyUser(`New quote added from server: "${serverQuote.text}"`);
+        }
+    });
+
+    localStorage.setItem('quotes', JSON.stringify(updatedLocalData));
+}
+
+setInterval(syncQuotes, 30000);
+
+function notifyUser(message) {
+    const notification = document.createElement('div');
+    notification.innerText = message;
+    notification.className = 'notification';
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 3000); 
+}
+
+const newQuote = { id: 101, text: 'This is a new quote added to the server' };
+postDataToServer(newQuote);
