@@ -167,6 +167,75 @@ function addQuote(text, category) {
 }
 
 // Syncing Data with Server and Implementing Conflict Resolution
+const serverUrl = "https://jsonplaceholder.typicode.com/posts";
+let localQuotes = JSON.parse(localStorage.getItem("quotes")) || [];
+
+function fetchQuotesFromServer() {
+    fetch(serverUrl)
+        .then(response => response.json())
+        .then(serverQuotes => {
+    
+            const formattedServerQuotes = serverQuotes.map(post => ({
+                text: post.body,
+                category: "General",
+                id: post.id
+            }));
+
+            syncQuotes(formattedServerQuotes);
+        })
+        .catch(error => console.error("Error fetching from server:", error));
+}
+
+setInterval(fetchQuotesFromServer, 60000);
+
+function syncQuotes(serverQuotes) {
+    const localQuotesMap = new Map(localQuotes.map(quote => [quote.id, quote]));
+
+    serverQuotes.forEach(serverQuote => {
+        const localQuote = localQuotesMap.get(serverQuote.id);
+
+        if (!localQuote || localQuote.text !== serverQuote.text) {
+            localQuotesMap.set(serverQuote.id, serverQuote);
+            notifyUserOfUpdate(serverQuote);
+        }
+    });
+
+    localQuotes = Array.from(localQuotesMap.values());
+    localStorage.setItem("quotes", JSON.stringify(localQuotes));
+
+    filterQuotes();
+}
+
+function notifyUserOfUpdate(updatedQuote) {
+    const notification = document.createElement("div");
+    notification.className = "notification";
+    notification.textContent = `Quote updated: "${updatedQuote.text}"`;
+    document.body.appendChild(notification);
+
+    setTimeout(() => notification.remove(), 3000); 
+}
+
+function resolveConflict(manualResolutionCallback) {
+    const conflictModal = document.createElement("div");
+    conflictModal.className = "conflict-modal";
+    conflictModal.innerHTML = `
+        <p>Conflict detected! Choose which version to keep:</p>
+        <button id="keepLocal">Keep Local Version</button>
+        <button id="keepServer">Keep Server Version</button>
+    `;
+    document.body.appendChild(conflictModal);
+
+    document.getElementById("keepLocal").onclick = () => {
+        manualResolutionCallback("local");
+        document.body.removeChild(conflictModal);
+    };
+
+    document.getElementById("keepServer").onclick = () => {
+        manualResolutionCallback("server");
+        document.body.removeChild(conflictModal);
+    };
+}
+
 setInterval(fetchData, 15000); 
 function fetchData() {
     fetch('https://jsonplaceholder.typicode.com/posts')
