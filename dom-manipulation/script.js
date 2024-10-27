@@ -177,13 +177,12 @@ function fetchQuotesFromServer() {
         .then(serverQuotes => {
             const formattedServerQuotes = serverQuotes.map(post => ({
                 text: post.body,
-                category: "General", 
+                category: "General",
                 id: post.id
             }));
-
             syncQuotes(formattedServerQuotes);
         })
-        .catch(error => console.error("Error fetching data from server:", error));
+        .catch(error => console.error("Error fetching data:", error));
 }
 
 setInterval(fetchQuotesFromServer, 60000);
@@ -195,6 +194,7 @@ function syncQuotes(serverQuotes) {
         const localQuote = localQuotesMap.get(serverQuote.id);
 
         if (!localQuote || localQuote.text !== serverQuote.text) {
+        
             localQuotesMap.set(serverQuote.id, serverQuote);
             notifyUserOfUpdate(serverQuote);
         }
@@ -212,18 +212,37 @@ function notifyUserOfUpdate(updatedQuote) {
     notification.textContent = `Quote updated: "${updatedQuote.text}"`;
     document.body.appendChild(notification);
 
-    setTimeout(() => notification.remove(), 3000); 
+    setTimeout(() => notification.remove(), 3000);
 }
 
-function filterQuotes() {
-    const quoteContainer = document.getElementById("quoteContainer");
-    quoteContainer.innerHTML = "";
+function resolveConflict(manualResolutionCallback) {
+    const conflictModal = document.createElement("div");
+    conflictModal.className = "conflict-modal";
+    conflictModal.innerHTML = `
+        <p>Conflict detected! Choose which version to keep:</p>
+        <button id="keepLocal">Keep Local Version</button>
+        <button id="keepServer">Keep Server Version</button>
+    `;
+    document.body.appendChild(conflictModal);
 
-    localQuotes.forEach(quote => {
-        const quoteElement = document.createElement("p");
-        quoteElement.textContent = quote.text;
-        quoteContainer.appendChild(quoteElement);
-    });
+    document.getElementById("keepLocal").onclick = () => {
+        manualResolutionCallback("local");
+        document.body.removeChild(conflictModal);
+    };
+
+    document.getElementById("keepServer").onclick = () => {
+        manualResolutionCallback("server");
+        document.body.removeChild(conflictModal);
+    };
 }
 
-fetchQuotesFromServer();
+function manualResolutionCallback(choice) {
+    if (choice === "local") {
+       
+    } else if (choice === "server") {
+        
+    }
+
+    localStorage.setItem("quotes", JSON.stringify(localQuotes));
+    filterQuotes();
+}
