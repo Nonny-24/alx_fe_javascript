@@ -167,32 +167,27 @@ function addQuote(text, category) {
 }
 
 // Syncing Data with Server and Implementing Conflict Resolution
-setInterval(async () => {
-    try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); 
-        const data = await response.json();
-
-        syncWithLocalStorage(data);
-    } catch (error) {
-        console.error('Failed to fetch data from the server:', error);
-    }
-}, 300000); 
-
-function syncWithLocalStorage(serverData) {
-    const localData = JSON.parse(localStorage.getItem('quotes')) || [];
-    const updatedData = serverData; 
-    localStorage.setItem('quotes', JSON.stringify(updatedData));
+setInterval(fetchData, 15000); 
+function fetchData() {
+    fetch('https://jsonplaceholder.typicode.com/posts')
+        .then(response => response.json())
+        .then(data => updateLocalData(data))
+        .catch(error => console.log('Fetch error:', error));
 }
 
-function showNotification(message) {
+function updateLocalData(serverData) {
+    const localData = JSON.parse(localStorage.getItem('quotes')) || [];
+    if (JSON.stringify(localData) !== JSON.stringify(serverData)) {
+        localStorage.setItem('quotes', JSON.stringify(serverData));
+        notifyUser("New data from server loaded.");
+    }
+}
+
+function notifyUser(message) {
     const notification = document.createElement('div');
     notification.className = 'notification';
-    notification.innerText = message;
+    notification.textContent = message;
     document.body.appendChild(notification);
-    setTimeout(() => notification.remove(), 3000); 
-}
-
-if (isConflictDetected) {
-    showNotification('Conflict detected! Server data has been applied.');
+    setTimeout(() => notification.remove(), 3000);
 }
 
