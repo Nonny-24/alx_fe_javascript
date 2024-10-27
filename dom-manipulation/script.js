@@ -154,7 +154,7 @@ function populateCategories() {
       saveQuotes();
   
       if (![...new Set(quotes.map(quote => quote.category))].includes(newQuoteCategory)) {
-        populateCategories(); // Refresh category dropdown
+        populateCategories(); 
       }
   
       document.getElementById("newQuoteText").value = "";
@@ -225,3 +225,4 @@ window.onload = function() {
   populateCategories();
   filterQuotes();
 };
+
